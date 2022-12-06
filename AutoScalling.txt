@@ -1,0 +1,57 @@
+--------------------------------------------------
+Horizontal Pod Autoscalling
+--------------------------------------------------
+
+apiVersion: app/v1
+kind: Deployment
+metadata:
+	name: scalling
+spec:
+	selector:
+		matchLabels:
+			run: scalling
+	replicas: 1
+	template:
+		metadata:
+			labels:
+				run: scalling
+		spec:
+			containers:
+				- name: nginx
+				  image: nginx
+				  ports:
+				  - containerPort: 80
+				  resources:
+					requests:
+						cpu: 500m
+					limits:
+						cpu: 1000m
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+	name: scalling
+	labels:
+		run: scalling
+spec:
+	ports:
+		- port: 80
+		  selector:
+			run: scalling
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+	name: scalling
+	namespace: default
+spec:
+	scaleTargetRef:
+		apiVersion: apps/v1
+		kind: Deployment
+		name: scalling
+	minReplicas: 1
+	maxReplicas: 10
+targetCPUUtilizationPercentage: 50
